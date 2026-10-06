@@ -7,8 +7,12 @@ output: github_document
 ```{r}
 library(tidyverse)
 ```
+# Problem 1
+
+## Read, clean and describe
 
 ```{r}
+
 
 options(lifecycle_verbosity = "quiet")
 
@@ -36,5 +40,32 @@ Now I got a dataset called NYC_df with `r nrow(NYC_df)` rows and `r ncol(NYC_df)
 These data are not fully tidy.
 Each row represents one station entrance/exit, and most variables form their own columns.
 However, the routes served by each station are spread across multiple columns (route1 to route11). According to tidy data principles, each variable should form a single column. Having the same type of information (route) repeated across many columns violates this rule.
+
+## Answering relative questions
+```{r}
+n_station = 
+  NYC_df |> 
+  distinct(line, station_name) |> 
+  nrow()
+
+n_ada =
+  NYC_df |>
+  distinct(line, station_name, ada) |>
+  filter(ada == TRUE) |>
+  nrow()
+
+n_novending=
+  NYC_df |>
+  filter(vending == "NO") |>
+  nrow()
+```
+
+Q1: There are `r n_station` distinct stations(identified by name and line);
+
+Q2: There are `r n_ada` stations are ADA compliant;
+
+Q3: The proportion of station entrances / exits without vending allow entrance is: `r n_novending/nrow(NYC_df)`.
+
+
 
 
