@@ -50,8 +50,8 @@ n_station =
 
 n_ada =
   NYC_df |>
-  distinct(line, station_name, ada) |>
   filter(ada == TRUE) |>
+  distinct(line, station_name) |>
   nrow()
 
 n_novending=
@@ -65,6 +65,35 @@ Q1: There are `r n_station` distinct stations(identified by name and line);
 Q2: There are `r n_ada` stations are ADA compliant;
 
 Q3: The proportion of station entrances / exits without vending allow entrance is: `r n_novending/nrow(NYC_df)`.
+
+## Reformat data
+
+```{r}
+NYC_tidy_df = 
+  NYC_df |>
+  mutate(across(route1:route11, as.character)) |>   
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route_name"
+  )
+
+n_Atrain = 
+  NYC_tidy_df |>
+  filter(route_name == "A") |>
+  distinct(line, station_name) |>
+  nrow()
+  
+n_Atrain_ada = 
+  NYC_tidy_df |>
+  filter(route_name == "A", ada = TRUE) |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+There are `r n_Atrain` serves A train;
+
+Of the stations that serve the A train, `r n_Atrain_ada` are ADA compliant.
 
 
 
