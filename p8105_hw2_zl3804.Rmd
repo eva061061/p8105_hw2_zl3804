@@ -170,6 +170,7 @@ Of the three wheels, Professor Trash Wheel collected `r sum(pull(professor_df,we
 
 # Problem 3
 
+## Basic demographic information
 
 ```{r}
 baseline_df = 
@@ -210,4 +211,30 @@ The average baseline age is `r (original_baseline |> pull(current_age) |> sum())
 
 `r original_baseline |> filter(sex== 0)|> pull(apoe4) |>sum()`% of women in the study are APOE4 carriers.
 
+## longitudinally observed biomarker values
 
+```{r}
+amyloid_df = 
+  read.csv("data/mci_amyloid.csv",
+           na = c("",".","NA"),
+           skip = 1) |>
+  janitor::clean_names() 
+
+amy_tidy_df = 
+  amyloid_df |>
+  pivot_longer(
+    baseline:time_8,
+    names_to = "time",
+    names_prefix = "time_",
+    values_to = "biomark_value"
+  ) |>
+  mutate(
+    time = replace(time, time == "baseline", "0"))
+  
+```
+comment on the steps on the import process and the features of the dataset.
+Imported mci_amyloid.csv,defined missing data, omitted the first row[note], and turned the variable names into snake_case. Importantly, I need to convert this dataset to a tidy form so I used pivot_longer() to put several times into same variable,making data longer.Meanwhile,in order to make data more pretty, I removed preflix and changed "baseline" into "0".
+
+ORIGINALLY,In INITIAL dataset, we have `r nrow(amyloid_df)` students with student Id, times elapsed since the study baseline to the visit where biomarker Amyloid _ 42/40 ratio was measured from baseline to 8th follow-up. 
+
+After pivot, we have `r nrow(amy_tidy_df)` observations with student Id, times elapsed since the study baseline to the visit where biomarker Amyloid _ 42/40 ratio was measured from baseline to 8th follow-up and their biomark values.
