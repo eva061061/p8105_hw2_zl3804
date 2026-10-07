@@ -25,15 +25,15 @@ NYC_df = read.csv(
     mutate( entry =
       case_match(
         entry,
-        "YES" ~ 1,
-        "NO" ~ 0
+        "YES" ~ TRUE,
+        "NO" ~ FALSE
       )
     )
 ```
 
 This NYC subway dataset from MTA contains line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance information.
 
-So far, I have read the original dataset, defined the missing data as NA, used janitor to make variable names cleaner, selected the variables wanted as mentioned, and cnverted the entry from chharacter to a logical variable[ YES became 1, NO became 0].
+So far, I have read the original dataset, defined the missing data as NA, used janitor to make variable names cleaner, selected the variables wanted as mentioned, and converted the entry from character to a logical variable[ YES became TRUE, NO became FALSE].
 
 Now I got a dataset called NYC_df with `r nrow(NYC_df)` rows and `r ncol(NYC_df)` columns.
 
@@ -64,7 +64,7 @@ Q1: There are `r n_station` distinct stations(identified by name and line);
 
 Q2: There are `r n_ada` stations are ADA compliant;
 
-Q3: The proportion of station entrances / exits without vending allow entrance is: `r n_novending/nrow(NYC_df)`.
+Q3: The proportion of station entrances / exits without vending allow entrance is: `r NYC_df |> filter(vending == "NO") |> summarise(prop = mean(entry, na.rm = TRUE))`.
 
 ## Reformat data
 
@@ -86,7 +86,7 @@ n_Atrain =
   
 n_Atrain_ada = 
   NYC_tidy_df |>
-  filter(route_name == "A", ada = TRUE) |>
+  filter(route_name == "A", ada == TRUE) |>
   distinct(line, station_name) |>
   nrow()
 ```
@@ -107,7 +107,7 @@ mrwheel_df  =
     range = "A2:N743",
     na = c("",".","NA")) |>
   janitor::clean_names() |>
-  drop_na( , dumpster)
+  drop_na(dumpster)
 
  
 
@@ -178,7 +178,7 @@ baseline_df =
            na = c("",".","NA"),
            skip = 1) |>
   janitor::clean_names() |>
-  filter(is.na(age_at_onset)== FALSE) |>
+  filter(is.na(age_at_onset) | age_at_onset > current_age) |>
   mutate(sex=
            case_match(
              sex,
@@ -195,7 +195,7 @@ baseline_df =
 ```
 Discuss important steps in the import process and relevant features of the dataset.
 
-To get cleean and tidy baseline dataset, I imported the original data, omitting the first line which was just a instruction note and defining the NAs in ordre to drop any participants who do not meet the stated inclusion criteria later. After cleaning the name into snake_case, I removed participatants with missing age_at_onset data using filter function. Lastly, I used mutate and case_match to ensure that sex and APOE4 carrier status are appropriate encoded.
+To get clean and tidy baseline dataset, I imported the original data, omitting the first line which was just a instruction note and defining the NAs to drop any participants who do not meet the stated inclusion criteria later. After cleaning the name into snake_case, I removed participants with missing age_at_onset data using filter function. Lastly, I used mutate and case_match to ensure that sex and APOE4 carrier status are appropriate encoded.
 
 ```{r}
 original_baseline = 
@@ -204,12 +204,12 @@ original_baseline =
 
 
 ```
+Here are some key information in this data: Age at the study baseline ,Years of education,gender,Age at the onset of MCI,and wheter carry Apoe4.
+We can see here are `r nrow(original_baseline)` participants, among which `r nrow(baseline_df)` develop MCI. 
 
-We can see here are `r nrow(original_baseline)` participants, among which `r nrow(baseline_df)` develop MCI.
+The average baseline age is `r original_baseline|> pull(current_age)|>mean(na.rm = TRUE)` years old.
 
-The average baseline age is `r (original_baseline |> pull(current_age) |> sum())/nrow(original_baseline)` years old.
-
-`r original_baseline |> filter(sex== 0)|> pull(apoe4) |>sum()`% of women in the study are APOE4 carriers.
+`r original_baseline |> filter(sex == 0) |> summarise(prop = mean(apoe4 == 1, na.rm = TRUE))`% of women in the study are APOE4 carriers.
 
 ## longitudinally observed biomarker values
 
@@ -235,6 +235,24 @@ amy_tidy_df =
 comment on the steps on the import process and the features of the dataset.
 Imported mci_amyloid.csv,defined missing data, omitted the first row[note], and turned the variable names into snake_case. Importantly, I need to convert this dataset to a tidy form so I used pivot_longer() to put several times into same variable,making data longer.Meanwhile,in order to make data more pretty, I removed preflix and changed "baseline" into "0".
 
-ORIGINALLY,In INITIAL dataset, we have `r nrow(amyloid_df)` students with student Id, times elapsed since the study baseline to the visit where biomarker Amyloid _ 42/40 ratio was measured from baseline to 8th follow-up. 
+ORIGINALLY,In INITIAL dataset, we have `r nrow(amyloid_df)` participants with study Id, times elapsed since the study baseline to the visit where biomarker Amyloid _ 42/40 ratio was measured from baseline to 8th follow-up. 
 
-After pivot, we have `r nrow(amy_tidy_df)` observations with student Id, times elapsed since the study baseline to the visit where biomarker Amyloid _ 42/40 ratio was measured from baseline to 8th follow-up and their biomark values.
+After pivot, we have `r nrow(amy_tidy_df)` observations with study Id, times elapsed since the study baseline to the visit where biomarker Amyloid _ 42/40 ratio was measured from baseline to 8th follow-up and their biomark values.
+
+## Join two dataset
+
+This is participants appearing in only the baseline datasets:
+
+```{r}
+onlybaseline_df = anti_join(original_baseline,amyloid_df, by = c("id" = "study_id")) |> knitr::kable()
+```
+This is participants appearing in only the amyloid datasets:
+```{r}
+only_amy_df = anti_join(amyloid_df, original_baseline, by = c("study_id" = "id"))
+```
+This is participants appearing in both baseline and the amyloid datasets:
+```{r}
+combine_df = inner_join(baseline_df, amyloid_df, by = c("id"="study_id"))
+write_csv(combine_df, "data/mci_combined.csv")
+```
+
