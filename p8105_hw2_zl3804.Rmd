@@ -164,5 +164,10 @@ joint_wheel = bind_rows( mrwheel_df,professor_df,gwy_df)
 
 ```
 
+In the binded dataset, here are `r nrow(joint_wheel)` observations with key variables such as: wheel_names, date, weight_tons, volume_cubic_yards, homes_powered,and quantity of different type of trash, etc.
+
+Of the three wheels, Professor Trash Wheel collected `r sum(pull(professor_df,weight_tons))` tons trash. And the total number of cigarette butts collected by Gwynnda in June of 2022 is `r gwy_df|> filter( year == 2022, month == "June") |> pull(cigarette_butts)|> sum()`
+
+
 
 
