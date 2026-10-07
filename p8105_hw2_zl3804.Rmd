@@ -168,6 +168,46 @@ In the binded dataset, here are `r nrow(joint_wheel)` observations with key vari
 
 Of the three wheels, Professor Trash Wheel collected `r sum(pull(professor_df,weight_tons))` tons trash. And the total number of cigarette butts collected by Gwynnda in June of 2022 is `r gwy_df|> filter( year == 2022, month == "June") |> pull(cigarette_butts)|> sum()`
 
+# Problem 3
 
+
+```{r}
+baseline_df = 
+  read.csv("data/MCI_baseline.csv",
+           na = c("",".","NA"),
+           skip = 1) |>
+  janitor::clean_names() |>
+  filter(is.na(age_at_onset)== FALSE) |>
+  mutate(sex=
+           case_match(
+             sex,
+             1 ~ "male",
+             0 ~ "female"
+           ),
+         apoe4=
+           case_match(
+             apoe4,
+             1 ~ "apoe4_carrier",
+             0 ~ "apoe4_noncarrier"
+           ))
+  
+```
+Discuss important steps in the import process and relevant features of the dataset.
+
+To get cleean and tidy baseline dataset, I imported the original data, omitting the first line which was just a instruction note and defining the NAs in ordre to drop any participants who do not meet the stated inclusion criteria later. After cleaning the name into snake_case, I removed participatants with missing age_at_onset data using filter function. Lastly, I used mutate and case_match to ensure that sex and APOE4 carrier status are appropriate encoded.
+
+```{r}
+original_baseline = 
+  read.csv("data/MCI_baseline.csv",skip = 1) |>
+  janitor::clean_names()
+
+
+```
+
+We can see here are `r nrow(original_baseline)` participants, among which `r nrow(baseline_df)` develop MCI.
+
+The average baseline age is `r (original_baseline |> pull(current_age) |> sum())/nrow(original_baseline)` years old.
+
+`r original_baseline |> filter(sex== 0)|> pull(apoe4) |>sum()`% of women in the study are APOE4 carriers.
 
 
