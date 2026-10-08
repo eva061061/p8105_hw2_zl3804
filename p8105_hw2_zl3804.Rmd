@@ -62,7 +62,7 @@ n_novending=
 
 Q1: There are `r n_station` distinct stations(identified by name and line);
 
-Q2: There are `r n_ada` stations are ADA compliant;
+Q2: There are `r n_ada` stations that are ADA compliant;
 
 Q3: The proportion of station entrances / exits without vending allow entrance is: `r NYC_df |> filter(vending == "NO") |> summarise(prop = mean(entry, na.rm = TRUE))`.
 
@@ -91,7 +91,7 @@ n_Atrain_ada =
   nrow()
 ```
 
-There are `r n_Atrain` serves A train;
+There are `r n_Atrain` stations that serves A train;
 
 Of the stations that serve the A train, `r n_Atrain_ada` are ADA compliant.
 
@@ -162,7 +162,7 @@ joint_wheel = bind_rows( mrwheel_df,professor_df,gwy_df)
 
 In the binded dataset, here are `r nrow(joint_wheel)` observations with key variables such as: wheel_names, date, weight_tons, volume_cubic_yards, homes_powered,and quantity of different type of trash, etc.
 
-Of the three wheels, Professor Trash Wheel collected `r sum(pull(professor_df,weight_tons))` tons trash. And the total number of cigarette butts collected by Gwynnda in June of 2022 is `r gwy_df|> filter( year == 2022, month == "June") |> pull(cigarette_butts)|> sum()`
+Of the three wheels, Professor Trash Wheel collected `r sum(pull(professor_df,weight_tons))` tons trash. And the total number of cigarette butts collected by Gwynnda in June of 2022 is `r gwy_df|> filter( year == 2022, month == "June") |> pull(cigarette_butts)|> sum()|>format(scientific = FALSE)`
 
 # Problem 3
 
@@ -201,7 +201,7 @@ original_baseline =
 
 ```
 Here are some key information in this data: Age at the study baseline ,Years of education,gender,Age at the onset of MCI,and wheter carry Apoe4.
-We can see here are `r nrow(original_baseline)` participants, among which `r nrow(baseline_df)` develop MCI. 
+We can see here are `r nrow(original_baseline)` participants, among which `r nrow(baseline_df)` meet the stated inclusion criteria (i.e. no MCI at baseline). 
 
 The average baseline age is `r original_baseline|> pull(current_age)|>mean(na.rm = TRUE)` years old.
 
