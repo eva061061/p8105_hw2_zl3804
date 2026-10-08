@@ -140,10 +140,6 @@ professor_df = drop_na(professor_df, dumpster) |>
   relocate(wheel_name) 
 
 
-  
-
-
-
 gwy_df  =
   read_excel(
     "data/202610 Trash Wheel Collection Data.xlsx",
@@ -195,7 +191,7 @@ baseline_df =
 ```
 Discuss important steps in the import process and relevant features of the dataset.
 
-To get clean and tidy baseline dataset, I imported the original data, omitting the first line which was just a instruction note and defining the NAs to drop any participants who do not meet the stated inclusion criteria later. After cleaning the name into snake_case, I removed participants with missing age_at_onset data using filter function. Lastly, I used mutate and case_match to ensure that sex and APOE4 carrier status are appropriate encoded.
+To get clean and tidy baseline dataset, I imported the original data, omitting the first line which was just a instruction note and defining the NAs to drop any participants who do not meet the stated inclusion criteria later. After cleaning the name into snake_case, I removed participants with age_at_onset = age at the study baseline using filter function. Lastly, I used mutate and case_match to ensure that sex and APOE4 carrier status are appropriate encoded.
 
 ```{r}
 original_baseline = 
@@ -209,7 +205,7 @@ We can see here are `r nrow(original_baseline)` participants, among which `r nro
 
 The average baseline age is `r original_baseline|> pull(current_age)|>mean(na.rm = TRUE)` years old.
 
-`r original_baseline |> filter(sex == 0) |> summarise(prop = mean(apoe4 == 1, na.rm = TRUE))`% of women in the study are APOE4 carriers.
+`r original_baseline |> filter(sex == 0) |> summarise(prop = mean(apoe4 == 1, na.rm = TRUE))` of women in the study are APOE4 carriers.
 
 ## longitudinally observed biomarker values
 
@@ -241,18 +237,27 @@ After pivot, we have `r nrow(amy_tidy_df)` observations with study Id, times ela
 
 ## Join two dataset
 
-This is participants appearing in only the baseline datasets:
+This are observations appearing in only the baseline datasets:
 
 ```{r}
-onlybaseline_df = anti_join(original_baseline,amyloid_df, by = c("id" = "study_id")) |> knitr::kable()
+onlybaseline_df = anti_join(baseline_df, amy_tidy_df, by = c("id" = "study_id"))
 ```
-This is participants appearing in only the amyloid datasets:
+Here are `r nrow(onlybaseline_df)` observations in only the baseline datasets. Attention: here I use the tidy baseline dataset which means I excluded those who do not meet the stated inclusion criteria (i.e. no MCI at baseline).
+
+This is observations appearing in only the amyloid datasets:
 ```{r}
-only_amy_df = anti_join(amyloid_df, original_baseline, by = c("study_id" = "id"))
+only_amy_df = anti_join(amy_tidy_df, baseline_df, by = c("study_id" = "id"))
 ```
+Here are `r nrow(only_amy_df)` observations in only the amyloid datasets. Attention: here I use the tidy amyloid biomark dataset which means the number of rows/observations does not equal to the number of participants.
+
+`r nrow(onlybaseline_df)` != `r nrow(only_amy_df)` ,so there are participants only in one dataset.
+
 This is participants appearing in both baseline and the amyloid datasets:
 ```{r}
-combine_df = inner_join(baseline_df, amyloid_df, by = c("id"="study_id"))
+combine_df = inner_join(baseline_df, amy_tidy_df, by = c("id"="study_id"))
 write_csv(combine_df, "data/mci_combined.csv")
 ```
 
+In the combined_df, here are `r nrow(combine_df)` observations. But need to pay attention to that this combine_df is a combination of two clean and tidy datasets which means in combine dataset, those who do not meet the stated inclusion criteria (i.e. no MCI at baseline) are excluded. Also, the apparence of combine_df is longer form because what got joined is tidy amyloid datasets rather than initial wide one.
+
+Among `r nrow(combine_df)` observations, here are `r length(unique(pull(combine_df,id)))` different unique id.
